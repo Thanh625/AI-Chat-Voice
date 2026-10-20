@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Chat Voice</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #101827;
+      color: white;
+      margin: 0;
+    }
+    .app {
+      max-width: 700px;
+      margin: 35px auto;
+      padding: 20px;
+    }
+    h1 { text-align: center; }
+    #messages {
+      height: 55vh;
+      overflow-y: auto;
+      background: #1d293b;
+      padding: 16px;
+      border-radius: 14px;
+    }
+    .message {
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 12px;
+      background: #35445b;
+      white-space: pre-wrap;
+    }
+    .user { background: #2459a7; }
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    input {
+      flex: 1;
+      min-width: 0;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>🤖 AI Chat Voice</h1>
+    <div id="messages">
+      <div class="message">
+        Xin chào! Tôi là trợ lý AI của bạn.
+      </div>
+    </div>
+
+    <div class="controls">
+      <input id="input" placeholder="Nhập tin nhắn...">
+      <button onclick="sendMessage()">Gửi</button>
+      <button onclick="startVoice()">🎤</button>
+      <button onclick="stopVoice()">🔇</button>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById("input");
+    const messages = document.getElementById("messages");
+
+    function addMessage(text, type = "ai") {
+      const div = document.createElement("div");
+      div.className = "message " + type;
+      div.textContent = text;
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) return;
+      speechSynthesis.cancel();
+      const voice = new SpeechSynthesisUtterance(text);
+      voice.lang = "vi-VN";
+      speechSynthesis.speak(voice);
+    }
+
+    function stopVoice() {
+      if ("speechSynthesis" in window) {
+        speechSynthesis.cancel();
+      }
+    }
+
+    function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage(text, "user");
+      input.value = "";
+
+      const reply =
+        "Tôi đã nhận được: " + text +
+        ". Chức năng AI sẽ được kết nối sau.";
+
+      addMessage(reply);
+      speak(reply);
+    }
+
+    input.addEventListener("keydown", event => {
+      if (event.key === "Enter") sendMessage();
+    });
+
+    function startVoice() {
+      const Recognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+      if (!Recognition) {
+        addMessage("Trình duyệt chưa hỗ trợ nhận giọng nói.");
+        return;
+      }
+
+      const recognition = new Recognition();
+      recognition.lang = "vi-VN";
+      recognition.onresult = event => {
+        input.value = event.results[0][0].transcript;
+        sendMessage();
+      };
+      recognition.onerror = () => {
+        addMessage("Không nhận được giọng nói. Hãy thử lại.");
+      };
+      recognition.start();
+    }
+  </script>
+</body>
+</html>
